@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:geolocator/geolocator.dart';
 
-// Replace with your OpenWeatherMap API key
 const String apiKey = '7d5b8634b1df2e08455cef623b46dcad';
 
 void main() {
@@ -35,7 +33,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String cityName = '';
+  String cityName = 'Hanoi'; // Default city
   String weatherInfo = '';
   String forecastInfo = '';
   bool isLoading = false;
@@ -46,121 +44,64 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    cityController.text = cityName;
+    getWeatherData();
   }
 
-  // Fetch weather data based on city or location
   Future<void> getWeatherData() async {
     setState(() {
       isLoading = true;
     });
 
-    if (cityName.isEmpty) {
-      // Get location if no city name is entered
-      Position position = await _determinePosition();
-      double latitude = position.latitude;
-      double longitude = position.longitude;
-      await _fetchWeatherByCoordinates(latitude, longitude);
-    } else {
-      await _fetchWeatherByCity(cityName);
-    }
+    await _fetchWeatherByCity(cityName);
   }
 
-  // Get weather by city name
   Future<void> _fetchWeatherByCity(String city) async {
     final response = await http.get(
       Uri.parse(
-          'https://api.openweathermap.org/data/2.5/forecast?q=$city&appid=$apiKey&units=metric'),
+          'https://api.openweathermap.org/data/2.5/weather?q=$city&appid=$apiKey&units=metric'),
     );
 
     if (response.statusCode == 200) {
       var data = json.decode(response.body);
       setState(() {
         weatherInfo =
-        'Current Temp: ${data['list'][0]['main']['temp']}°C\nDescription: ${data['list'][0]['weather'][0]['description']}\nMin Temp: ${data['list'][0]['main']['temp_min']}°C\nMax Temp: ${data['list'][0]['main']['temp_max']}°C\nHumidity: ${data['list'][0]['main']['humidity']}%\nWind Speed: ${data['list'][0]['wind']['speed']} m/s';
-        forecastInfo = '5-day forecast:\n';
-        for (var i = 0; i < data['list'].length; i++) {
-          String date = data['list'][i]['dt_txt'];
-          String description = data['list'][i]['weather'][0]['description'];
-          double temp = data['list'][i]['main']['temp'];
-          String formattedDate = date.split(' ')[0]; // chỉ lấy ngày
-          forecastInfo += '$formattedDate: $description, Temp: ${temp}°C\n';
-        }
-      });
-      setState(() {
-        hasWeatherData = true;
+        'Current Temp: ${data['main']['temp']}°C\nDescription: ${data['weather'][0]['description']}\nMin Temp: ${data['main']['temp_min']}°C\nMax Temp: ${data['main']['temp_max']}°C\nHumidity: ${data['main']['humidity']}%\nWind Speed: ${data['wind']['speed']} m/s';
       });
     } else {
       setState(() {
         weatherInfo = 'Failed to fetch data for city $city.';
-        hasWeatherData = false;
       });
     }
 
-    setState(() {
-      isLoading = false;
-    });
-  }
-
-  // Get weather by coordinates
-  Future<void> _fetchWeatherByCoordinates(double lat, double lon) async {
-    final response = await http.get(
+    // Fetch 5-day forecast
+    final forecastResponse = await http.get(
       Uri.parse(
-          'https://api.openweathermap.org/data/2.5/forecast?lat=$lat&lon=$lon&appid=$apiKey&units=metric'),
+          'https://api.openweathermap.org/data/2.5/forecast?q=$city&appid=$apiKey&units=metric'),
     );
 
-    if (response.statusCode == 200) {
-      var data = json.decode(response.body);
+    if (forecastResponse.statusCode == 200) {
+      var forecastData = json.decode(forecastResponse.body);
       setState(() {
-        weatherInfo =
-        'Current Temp: ${data['list'][0]['main']['temp']}°C\nDescription: ${data['list'][0]['weather'][0]['description']}\nMin Temp: ${data['list'][0]['main']['temp_min']}°C\nMax Temp: ${data['list'][0]['main']['temp_max']}°C\nHumidity: ${data['list'][0]['main']['humidity']}%\nWind Speed: ${data['list'][0]['wind']['speed']} m/s';
         forecastInfo = '5-day forecast:\n';
-        for (var i = 0; i < data['list'].length; i++) {
-          String date = data['list'][i]['dt_txt'];
-          String description = data['list'][i]['weather'][0]['description'];
-          double temp = data['list'][i]['main']['temp'];
-          String formattedDate = date.split(' ')[0]; // chỉ lấy ngày
+        for (var i = 0; i < forecastData['list'].length; i++) {
+          String date = forecastData['list'][i]['dt_txt'];
+          String description = forecastData['list'][i]['weather'][0]['description'];
+          double temp = forecastData['list'][i]['main']['temp'];
+          String formattedDate = date.split(' ')[0]; // Just the date
           forecastInfo += '$formattedDate: $description, Temp: ${temp}°C\n';
         }
       });
-      setState(() {
-        hasWeatherData = true;
-      });
     } else {
       setState(() {
-        weatherInfo = 'Failed to fetch data for location.';
-        hasWeatherData = false;
+        forecastInfo = 'Failed to fetch forecast for city $city.';
       });
     }
 
     setState(() {
       isLoading = false;
+      hasWeatherData = true;
     });
-  }
-
-  // Determine current position (location)
-  Future<Position> _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied');
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.');
-    }
-
-    return await Geolocator.getCurrentPosition();
   }
 
   @override
@@ -174,26 +115,25 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (hasWeatherData)
-              TextField(
-                controller: cityController,
-                decoration: const InputDecoration(
-                  labelText: 'Enter city name',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.location_city),  // Icon for the text field
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    cityName = value;
-                  });
-                },
+            TextField(
+              controller: cityController,
+              decoration: const InputDecoration(
+                labelText: 'Enter city name',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.location_city),
               ),
+              onChanged: (value) {
+                setState(() {
+                  cityName = value;
+                });
+              },
+            ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: getWeatherData,
               icon: isLoading
                   ? const CircularProgressIndicator()
-                  : const Icon(Icons.search), // Search icon
+                  : const Icon(Icons.search),
               label: const Text('Get Weather'),
             ),
             const SizedBox(height: 20),
@@ -208,35 +148,35 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.thermostat, size: 40, color: Colors.blue), // Nhiệt độ
+                          const Icon(Icons.thermostat, size: 40, color: Colors.blue),
                           const SizedBox(width: 10),
                           Text('Temperature: ${weatherInfo.split('\n')[0]}'),
                         ],
                       ),
                       Row(
                         children: [
-                          const Icon(Icons.water_drop, size: 40, color: Colors.blue), // Độ ẩm
+                          const Icon(Icons.water_drop, size: 40, color: Colors.blue),
                           const SizedBox(width: 10),
                           Text('Humidity: ${weatherInfo.split('\n')[4]}'),
                         ],
                       ),
                       Row(
                         children: [
-                          const Icon(Icons.wind_power, size: 40, color: Colors.blue), // Tốc độ gió
+                          const Icon(Icons.wind_power, size: 40, color: Colors.blue),
                           const SizedBox(width: 10),
                           Text('Wind Speed: ${weatherInfo.split('\n')[5]}'),
                         ],
                       ),
                       Row(
                         children: [
-                          const Icon(Icons.arrow_downward, size: 40, color: Colors.blue), // Nhiệt độ thấp nhất
+                          const Icon(Icons.arrow_downward, size: 40, color: Colors.blue),
                           const SizedBox(width: 10),
                           Text('Min Temp: ${weatherInfo.split('\n')[2]}'),
                         ],
                       ),
                       Row(
                         children: [
-                          const Icon(Icons.arrow_upward, size: 40, color: Colors.blue), // Nhiệt độ cao nhất
+                          const Icon(Icons.arrow_upward, size: 40, color: Colors.blue),
                           const SizedBox(width: 10),
                           Text('Max Temp: ${weatherInfo.split('\n')[3]}'),
                         ],
@@ -257,7 +197,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       padding: const EdgeInsets.all(10),
                       child: Row(
                         children: [
-                          const Icon(Icons.date_range, size: 30, color: Colors.blue), // Ngày
+                          const Icon(Icons.date_range, size: 30, color: Colors.blue),
                           const SizedBox(width: 10),
                           Expanded(child: Text(line)),
                         ],
