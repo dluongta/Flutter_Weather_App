@@ -66,7 +66,13 @@ class _MyHomePageState extends State<MyHomePage> {
       var data = json.decode(response.body);
       setState(() {
         weatherInfo =
-        'Current Temp: ${data['main']['temp']}°C\nDescription: ${data['weather'][0]['description']}\nMin Temp: ${data['main']['temp_min']}°C\nMax Temp: ${data['main']['temp_max']}°C\nHumidity: ${data['main']['humidity']}%\nWind Speed: ${data['wind']['speed']} m/s';
+        'Current Temp: ${data['main']['temp']}°C\n'
+            'Description: ${data['weather'][0]['description']}\n'
+            'Condition: ${data['weather'][0]['main']}\n' // Added weather condition
+            'Min Temp: ${data['main']['temp_min']}°C\n'
+            'Max Temp: ${data['main']['temp_max']}°C\n'
+            'Humidity: ${data['main']['humidity']}%\n'
+            'Wind Speed: ${data['wind']['speed']} m/s';
       });
     } else {
       setState(() {
