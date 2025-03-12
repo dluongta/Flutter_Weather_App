@@ -36,6 +36,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String forecastInfo = '';
   bool isLoading = false;
   bool hasWeatherData = false;
+  String errorMessage = ''; // Error message to display
 
   final TextEditingController cityController = TextEditingController();
 
@@ -49,32 +50,48 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> getWeatherData() async {
     setState(() {
       isLoading = true;
+      errorMessage = ''; // Reset error message
     });
 
     await _fetchWeatherByCity(cityName);
   }
 
   Future<void> _fetchWeatherByCity(String city) async {
-    final response = await http.get(
-      Uri.parse(
-        'https://api.openweathermap.org/data/2.5/weather?q=$city&appid=$apiKey&units=metric',
-      ),
-    );
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://api.openweathermap.org/data/2.5/weather?q=$city&appid=$apiKey&units=metric',
+        ),
+      );
 
-    if (response.statusCode == 200) {
-      var data = json.decode(response.body);
-      setState(() {
-        weatherInfo =
+      if (response.statusCode == 200) {
+        var data = json.decode(response.body);
+        if (data['cod'] != 200) {
+          setState(() {
+            errorMessage = 'City not found or invalid.';
+            weatherInfo = '';
+          });
+        } else {
+          setState(() {
+            weatherInfo =
             'Current Temp: ${data['main']['temp']}°C\n'
-            'Condition: ${data['weather'][0]['main']}\n'
-            'Humidity: ${data['main']['humidity']}%\n'
-            'Wind Speed: ${data['wind']['speed']} m/s\n'
-            'Min Temp: ${data['main']['temp_min']}°C\n'
-            'Max Temp: ${data['main']['temp_max']}°C\n';
-      });
-    } else {
+                'Condition: ${data['weather'][0]['main']}\n'
+                'Humidity: ${data['main']['humidity']}%\n'
+                'Wind Speed: ${data['wind']['speed']} m/s\n'
+                'Min Temp: ${data['main']['temp_min']}°C\n'
+                'Max Temp: ${data['main']['temp_max']}°C\n';
+          });
+        }
+      } else {
+        setState(() {
+          errorMessage = 'Failed to fetch data from the server.';
+          weatherInfo = '';
+        });
+      }
+    } catch (e) {
       setState(() {
-        weatherInfo = 'Failed to fetch data for city $city.';
+        errorMessage = 'An error occurred: $e';
+        weatherInfo = '';
       });
     }
 
@@ -110,12 +127,21 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton.icon(
               onPressed: getWeatherData,
               icon:
-                  isLoading
-                      ? const CircularProgressIndicator()
-                      : const Icon(Icons.search),
+              isLoading
+                  ? const CircularProgressIndicator()
+                  : const Icon(Icons.search),
               label: const Text('Get Weather'),
             ),
             const SizedBox(height: 20),
+            if (errorMessage.isNotEmpty) ...[
+              Text(
+                errorMessage,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
             if (weatherInfo.isNotEmpty) ...[
               Card(
                 elevation: 5,
