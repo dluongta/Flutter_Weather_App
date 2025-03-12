@@ -15,9 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Weather App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue),
       home: const MyHomePage(title: 'Weather App'),
     );
   }
@@ -59,48 +57,24 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _fetchWeatherByCity(String city) async {
     final response = await http.get(
       Uri.parse(
-          'https://api.openweathermap.org/data/2.5/weather?q=$city&appid=$apiKey&units=metric'),
+        'https://api.openweathermap.org/data/2.5/weather?q=$city&appid=$apiKey&units=metric',
+      ),
     );
 
     if (response.statusCode == 200) {
       var data = json.decode(response.body);
       setState(() {
         weatherInfo =
-        'Current Temp: ${data['main']['temp']}°C\n'
-            'Description: ${data['weather'][0]['description']}\n'
-            'Condition: ${data['weather'][0]['main']}\n' // Added weather condition
-            'Min Temp: ${data['main']['temp_min']}°C\n'
-            'Max Temp: ${data['main']['temp_max']}°C\n'
+            'Current Temp: ${data['main']['temp']}°C\n'
+            'Condition: ${data['weather'][0]['main']}\n'
             'Humidity: ${data['main']['humidity']}%\n'
-            'Wind Speed: ${data['wind']['speed']} m/s';
+            'Wind Speed: ${data['wind']['speed']} m/s\n'
+            'Min Temp: ${data['main']['temp_min']}°C\n'
+            'Max Temp: ${data['main']['temp_max']}°C\n';
       });
     } else {
       setState(() {
         weatherInfo = 'Failed to fetch data for city $city.';
-      });
-    }
-
-    // Fetch 5-day forecast
-    final forecastResponse = await http.get(
-      Uri.parse(
-          'https://api.openweathermap.org/data/2.5/forecast?q=$city&appid=$apiKey&units=metric'),
-    );
-
-    if (forecastResponse.statusCode == 200) {
-      var forecastData = json.decode(forecastResponse.body);
-      setState(() {
-        forecastInfo = '5-day forecast:\n';
-        for (var i = 0; i < forecastData['list'].length; i++) {
-          String date = forecastData['list'][i]['dt_txt'];
-          String description = forecastData['list'][i]['weather'][0]['description'];
-          double temp = forecastData['list'][i]['main']['temp'];
-          String formattedDate = date.split(' ')[0]; // Just the date
-          forecastInfo += '$formattedDate: $description, Temp: ${temp}°C\n';
-        }
-      });
-    } else {
-      setState(() {
-        forecastInfo = 'Failed to fetch forecast for city $city.';
       });
     }
 
@@ -113,9 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      appBar: AppBar(title: Text(widget.title)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -137,9 +109,10 @@ class _MyHomePageState extends State<MyHomePage> {
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: getWeatherData,
-              icon: isLoading
-                  ? const CircularProgressIndicator()
-                  : const Icon(Icons.search),
+              icon:
+                  isLoading
+                      ? const CircularProgressIndicator()
+                      : const Icon(Icons.search),
               label: const Text('Get Weather'),
             ),
             const SizedBox(height: 20),
@@ -154,62 +127,74 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.thermostat, size: 40, color: Colors.blue),
+                          const Icon(
+                            Icons.thermostat,
+                            size: 40,
+                            color: Colors.blue,
+                          ),
                           const SizedBox(width: 10),
-                          Text('Temperature: ${weatherInfo.split('\n')[0]}'),
+                          Text('${weatherInfo.split('\n')[0]}'),
                         ],
                       ),
                       Row(
                         children: [
-                          const Icon(Icons.water_drop, size: 40, color: Colors.blue),
+                          const Icon(
+                            Icons.sunny,
+                            size: 40,
+                            color: Colors.blue,
+                          ),
                           const SizedBox(width: 10),
-                          Text('Humidity: ${weatherInfo.split('\n')[4]}'),
+                          Text('${weatherInfo.split('\n')[1]}'),
                         ],
                       ),
                       Row(
                         children: [
-                          const Icon(Icons.wind_power, size: 40, color: Colors.blue),
+                          const Icon(
+                            Icons.water_drop,
+                            size: 40,
+                            color: Colors.blue,
+                          ),
                           const SizedBox(width: 10),
-                          Text('Wind Speed: ${weatherInfo.split('\n')[5]}'),
+                          Text('${weatherInfo.split('\n')[2]}'),
                         ],
                       ),
                       Row(
                         children: [
-                          const Icon(Icons.arrow_downward, size: 40, color: Colors.blue),
+                          const Icon(
+                            Icons.wind_power,
+                            size: 40,
+                            color: Colors.blue,
+                          ),
                           const SizedBox(width: 10),
-                          Text('Min Temp: ${weatherInfo.split('\n')[2]}'),
+                          Text('${weatherInfo.split('\n')[3]}'),
                         ],
                       ),
                       Row(
                         children: [
-                          const Icon(Icons.arrow_upward, size: 40, color: Colors.blue),
+                          const Icon(
+                            Icons.arrow_downward,
+                            size: 40,
+                            color: Colors.blue,
+                          ),
                           const SizedBox(width: 10),
-                          Text('Max Temp: ${weatherInfo.split('\n')[3]}'),
+                          Text('${weatherInfo.split('\n')[4]}'),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.arrow_upward,
+                            size: 40,
+                            color: Colors.blue,
+                          ),
+                          const SizedBox(width: 10),
+                          Text('${weatherInfo.split('\n')[5]}'),
                         ],
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              Text('5-day forecast', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
-              for (var line in forecastInfo.split('\n'))
-                if (line.isNotEmpty)
-                  Card(
-                    elevation: 5,
-                    margin: const EdgeInsets.symmetric(vertical: 5),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.date_range, size: 30, color: Colors.blue),
-                          const SizedBox(width: 10),
-                          Expanded(child: Text(line)),
-                        ],
-                      ),
-                    ),
-                  ),
             ],
           ],
         ),
