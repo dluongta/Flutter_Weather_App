@@ -130,7 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         '$date',
@@ -140,8 +140,12 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text('Temp: $temp°C'),
-                      Text('Condition: $condition'),
+                      Text(
+                        'Temp: $temp°C',
+                      ),
+                      Text(
+                        'Condition: $condition',
+                      ),
                     ],
                   ),
                 ),
@@ -167,144 +171,147 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: cityController,
-              decoration: const InputDecoration(
-                labelText: 'Enter city name',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.location_city),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  cityName = value;
-                });
-              },
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: getWeatherData,
-              icon: isLoading
-                  ? const CircularProgressIndicator()
-                  : const Icon(Icons.search),
-              label: const Text('Get Weather'),
-            ),
-            const SizedBox(height: 20),
-            if (errorMessage.isNotEmpty) ...[
-              Text(
-                errorMessage,
-                style: const TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
+      body: SingleChildScrollView( // Wrap entire body in SingleChildScrollView for full screen scroll
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: cityController,
+                decoration: const InputDecoration(
+                  labelText: 'Enter city name',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.location_city),
                 ),
+                onChanged: (value) {
+                  setState(() {
+                    cityName = value;
+                  });
+                },
               ),
-            ],
-            if (weatherInfo.isNotEmpty) ...[
               const SizedBox(height: 20),
-              const Text(
-                'Current Weather:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ElevatedButton.icon(
+                onPressed: getWeatherData,
+                icon: isLoading
+                    ? const CircularProgressIndicator()
+                    : const Icon(Icons.search),
+                label: const Text('Get Weather'),
               ),
-              const SizedBox(height: 10),
-              Card(
-                elevation: 5,
-                margin: const EdgeInsets.symmetric(vertical: 10),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.thermostat,
-                            size: 40,
-                            color: Colors.blue,
-                          ),
-                          const SizedBox(width: 10),
-                          Text('${weatherInfo.split('\n')[0]}'),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.sunny,
-                            size: 40,
-                            color: Colors.blue,
-                          ),
-                          const SizedBox(width: 10),
-                          Text('${weatherInfo.split('\n')[1]}'),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.water_drop,
-                            size: 40,
-                            color: Colors.blue,
-                          ),
-                          const SizedBox(width: 10),
-                          Text('${weatherInfo.split('\n')[2]}'),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.wind_power,
-                            size: 40,
-                            color: Colors.blue,
-                          ),
-                          const SizedBox(width: 10),
-                          Text('${weatherInfo.split('\n')[3]}'),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.arrow_downward,
-                            size: 40,
-                            color: Colors.blue,
-                          ),
-                          const SizedBox(width: 10),
-                          Text('${weatherInfo.split('\n')[4]}'),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.arrow_upward,
-                            size: 40,
-                            color: Colors.blue,
-                          ),
-                          const SizedBox(width: 10),
-                          Text('${weatherInfo.split('\n')[5]}'),
-                        ],
-                      ),
-                    ],
+              const SizedBox(height: 20),
+              if (errorMessage.isNotEmpty) ...[
+                Text(
+                  errorMessage,
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-            ],
-            if (forecastCards.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              const Text(
-                '5-Day Forecast:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: forecastCards, // Display all forecast cards here
+              ],
+              if (weatherInfo.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                const Text(
+                  'Current Weather:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                Card(
+                  elevation: 5,
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.thermostat,
+                              size: 40,
+                              color: Colors.blue,
+                            ),
+                            const SizedBox(width: 10),
+                            Text('${weatherInfo.split('\n')[0]}'),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.sunny,
+                              size: 40,
+                              color: Colors.blue,
+                            ),
+                            const SizedBox(width: 10),
+                            Text('${weatherInfo.split('\n')[1]}'),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.water_drop,
+                              size: 40,
+                              color: Colors.blue,
+                            ),
+                            const SizedBox(width: 10),
+                            Text('${weatherInfo.split('\n')[2]}'),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.wind_power,
+                              size: 40,
+                              color: Colors.blue,
+                            ),
+                            const SizedBox(width: 10),
+                            Text('${weatherInfo.split('\n')[3]}'),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.arrow_downward,
+                              size: 40,
+                              color: Colors.blue,
+                            ),
+                            const SizedBox(width: 10),
+                            Text('${weatherInfo.split('\n')[4]}'),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.arrow_upward,
+                              size: 40,
+                              color: Colors.blue,
+                            ),
+                            const SizedBox(width: 10),
+                            Text('${weatherInfo.split('\n')[5]}'),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+              ],
+              if (forecastCards.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                const Text(
+                  '5-Day Forecast:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                Column(
+                  children: forecastCards.map((card) {
+                    return Container(
+                      width: double.infinity,  // Make the card take up 100% width
+                      child: card,
+                    );
+                  }).toList(),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
