@@ -33,9 +33,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String cityName = 'Hanoi'; // Default city
   String weatherInfo = '';
-  String forecastInfo = '';
+  List<Widget> forecastCards = []; // Store forecast cards as List<Widget>
   bool isLoading = false;
-  bool hasWeatherData = false;
   String errorMessage = ''; // Error message to display
 
   final TextEditingController cityController = TextEditingController();
@@ -54,6 +53,11 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     await _fetchWeatherByCity(cityName);
+    await _fetchForecastByCity(cityName);
+
+    setState(() {
+      isLoading = false; // Stop the loading spinner after fetching data
+    });
   }
 
   Future<void> _fetchWeatherByCity(String city) async {
@@ -94,11 +98,69 @@ class _MyHomePageState extends State<MyHomePage> {
         weatherInfo = '';
       });
     }
+  }
 
-    setState(() {
-      isLoading = false;
-      hasWeatherData = true;
-    });
+  Future<void> _fetchForecastByCity(String city) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://api.openweathermap.org/data/2.5/forecast?q=$city&appid=$apiKey&units=metric',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        var data = json.decode(response.body);
+        if (data['cod'] != '200') {
+          setState(() {
+            errorMessage = 'City not found or invalid.';
+            forecastCards = [];
+          });
+        } else {
+          setState(() {
+            forecastCards = []; // Clear previous forecast cards
+            // Iterate over the list of forecast data and create cards
+            for (var item in data['list']) {
+              String date = item['dt_txt'];
+              String temp = item['main']['temp'].toString();
+              String condition = item['weather'][0]['main'];
+
+              forecastCards.add(Card(
+                elevation: 5,
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$date',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text('Temp: $temp°C'),
+                      Text('Condition: $condition'),
+                    ],
+                  ),
+                ),
+              ));
+            }
+          });
+        }
+      } else {
+        setState(() {
+          errorMessage = 'Failed to fetch forecast data from the server.';
+          forecastCards = [];
+        });
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = 'An error occurred: $e';
+        forecastCards = [];
+      });
+    }
   }
 
   @override
@@ -126,8 +188,7 @@ class _MyHomePageState extends State<MyHomePage> {
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: getWeatherData,
-              icon:
-              isLoading
+              icon: isLoading
                   ? const CircularProgressIndicator()
                   : const Icon(Icons.search),
               label: const Text('Get Weather'),
@@ -143,6 +204,12 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
             if (weatherInfo.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              const Text(
+                'Current Weather:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
               Card(
                 elevation: 5,
                 margin: const EdgeInsets.symmetric(vertical: 10),
@@ -218,6 +285,21 @@ class _MyHomePageState extends State<MyHomePage> {
                         ],
                       ),
                     ],
+                  ),
+                ),
+              ),
+            ],
+            if (forecastCards.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              const Text(
+                '5-Day Forecast:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: forecastCards, // Display all forecast cards here
                   ),
                 ),
               ),
