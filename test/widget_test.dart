@@ -1,30 +1,38 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:flutter_weather_app/main.dart';
+import 'package:flutter_weather_app/main.dart'; // Make sure the import points to your app's main.dart
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Weather data is fetched and displayed after entering city name and clicking Get Weather', (WidgetTester tester) async {
+    // Build the app and trigger a frame.
+    await tester.pumpWidget(MaterialApp(
+      title: 'Flutter Weather App',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => LoadingScreen(),
+        '/home': (context) => MyHomePage(title: 'Weather App'),
+      },
+    ));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Find the text field and type a city name (e.g., 'Hanoi').
+    final textField = find.byType(TextField);
+    await tester.enterText(textField, 'Hanoi');
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Find the 'Get Weather' button and tap it.
+    final getWeatherButton = find.text('Get Weather');
+    await tester.tap(getWeatherButton);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Trigger a frame to simulate waiting for the data to load.
+    await tester.pumpAndSettle();
+
+    // Verify that the weather information is displayed after the button is pressed.
+    expect(find.textContaining('Current Temp:'), findsOneWidget);
+    expect(find.textContaining('Condition:'), findsOneWidget);
+    expect(find.textContaining('Humidity:'), findsOneWidget);
+    expect(find.textContaining('Wind Speed:'), findsOneWidget);
+
+    // Optionally, you can check if the error message is not shown when the city is valid.
+    expect(find.text('City not found or invalid.'), findsNothing);
   });
 }

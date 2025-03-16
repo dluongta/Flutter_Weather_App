@@ -1,22 +1,60 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart'; // For date formatting
+import 'package:flutter_spinkit/flutter_spinkit.dart'; // Import SpinKit
 
 const String apiKey = '7d5b8634b1df2e08455cef623b46dcad';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MaterialApp(
+      title: 'Flutter Weather App',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => LoadingScreen(),
+        '/home': (context) => MyHomePage(title: 'Weather App'),
+      },
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class LoadingScreen extends StatefulWidget {
+  @override
+  _LoadingScreenState createState() => _LoadingScreenState();
+}
+
+class _LoadingScreenState extends State<LoadingScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.pushReplacementNamed(context, '/home');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Weather App',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const MyHomePage(title: 'Weather App'),
+    return Scaffold(
+      backgroundColor: Colors.blue[300],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              'Flutter Weather App',
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(height: 20),
+            SpinKitWave(color: Colors.white, size: 50.0),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -33,9 +71,9 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String cityName = 'Hanoi'; // Default city
   String weatherInfo = '';
-  List<Widget> forecastCards = []; // Store forecast cards as List<Widget>
+  List<Widget> forecastCards = [];
   bool isLoading = false;
-  String errorMessage = ''; // Error message to display
+  String errorMessage = '';
 
   final TextEditingController cityController = TextEditingController();
 
@@ -56,7 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
     await _fetchForecastByCity(cityName);
 
     setState(() {
-      isLoading = false; // Stop the loading spinner after fetching data
+      isLoading = false; // Stop loading spinner after data is fetched
     });
   }
 
@@ -78,12 +116,10 @@ class _MyHomePageState extends State<MyHomePage> {
         } else {
           setState(() {
             weatherInfo =
-            'Current Temp: ${data['main']['temp']}°C\n'
-                'Condition: ${data['weather'][0]['main']}\n'
+                'Current Temp: ${data['main']['temp']}°C\n'
+                'Condition: ${capitalizeCondition(data['weather'][0]['description'])}\n'
                 'Humidity: ${data['main']['humidity']}%\n'
-                'Wind Speed: ${data['wind']['speed']} m/s\n'
-                'Min Temp: ${data['main']['temp_min']}°C\n'
-                'Max Temp: ${data['main']['temp_max']}°C\n';
+                'Wind Speed: ${data['wind']['speed']} m/s\n';
           });
         }
       } else {
@@ -117,40 +153,78 @@ class _MyHomePageState extends State<MyHomePage> {
           });
         } else {
           setState(() {
-            forecastCards = []; // Clear previous forecast cards
-            // Iterate over the list of forecast data and create cards
+            forecastCards = [];
+            Map<String, List<dynamic>> groupedForecast = {};
             for (var item in data['list']) {
-              String date = item['dt_txt'];
-              String temp = item['main']['temp'].toString();
-              String condition = item['weather'][0]['main'];
+              String date = item['dt_txt'].split(' ')[0];
+              if (!groupedForecast.containsKey(date)) {
+                groupedForecast[date] = [];
+              }
+              groupedForecast[date]?.add(item);
+            }
 
-              forecastCards.add(Card(
-                elevation: 5,
-                margin: const EdgeInsets.symmetric(vertical: 10),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '$date',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+            groupedForecast.forEach((date, items) {
+              forecastCards.add(
+                Container(
+                  // Wrapper for forecast cards
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  child: Card(
+                    elevation: 5,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.center, // Centered content
+                        children: [
+                          Text(
+                            DateFormat(
+                              'MMMM d, yyyy',
+                            ).format(DateFormat('yyyy-MM-dd').parse(date)),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children:
+                                items.map((item) {
+                                  String description = capitalizeCondition(
+                                    item['weather'][0]['description'],
+                                  );
+                                  String temp = item['main']['temp'].toString();
+                                  String time = item['dt_txt'].split(' ')[1];
+
+                                  return Container(
+                                    width: double.infinity, // 100% width
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          time,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                        Text(
+                                          '$temp°C',
+                                          style: const TextStyle(fontSize: 14),
+                                        ),
+                                        Text(
+                                          description,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Temp: $temp°C',
-                      ),
-                      Text(
-                        'Condition: $condition',
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ));
-            }
+              );
+            });
           });
         }
       } else {
@@ -167,16 +241,27 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // Capitalize the first letter of each word in the weather condition
+  String capitalizeCondition(String condition) {
+    return condition
+        .split(' ')
+        .map((word) {
+          return word[0].toUpperCase() + word.substring(1);
+        })
+        .join(' ');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
-      body: SingleChildScrollView( // Wrap entire body in SingleChildScrollView for full screen scroll
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Search for a city
               TextField(
                 controller: cityController,
                 decoration: const InputDecoration(
@@ -193,13 +278,15 @@ class _MyHomePageState extends State<MyHomePage> {
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: getWeatherData,
-                icon: isLoading
-                    ? const CircularProgressIndicator()
-                    : const Icon(Icons.search),
+                icon:
+                    isLoading
+                        ? const CircularProgressIndicator()
+                        : const Icon(Icons.search),
                 label: const Text('Get Weather'),
               ),
               const SizedBox(height: 20),
               if (errorMessage.isNotEmpty) ...[
+                // Error message
                 Text(
                   errorMessage,
                   style: const TextStyle(
@@ -209,107 +296,129 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ],
               if (weatherInfo.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                const Text(
-                  'Current Weather:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                Card(
-                  elevation: 5,
-                  margin: const EdgeInsets.symmetric(vertical: 10),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.thermostat,
-                              size: 40,
-                              color: Colors.blue,
-                            ),
-                            const SizedBox(width: 10),
-                            Text('${weatherInfo.split('\n')[0]}'),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.sunny,
-                              size: 40,
-                              color: Colors.blue,
-                            ),
-                            const SizedBox(width: 10),
-                            Text('${weatherInfo.split('\n')[1]}'),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.water_drop,
-                              size: 40,
-                              color: Colors.blue,
-                            ),
-                            const SizedBox(width: 10),
-                            Text('${weatherInfo.split('\n')[2]}'),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.wind_power,
-                              size: 40,
-                              color: Colors.blue,
-                            ),
-                            const SizedBox(width: 10),
-                            Text('${weatherInfo.split('\n')[3]}'),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.arrow_downward,
-                              size: 40,
-                              color: Colors.blue,
-                            ),
-                            const SizedBox(width: 10),
-                            Text('${weatherInfo.split('\n')[4]}'),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.arrow_upward,
-                              size: 40,
-                              color: Colors.blue,
-                            ),
-                            const SizedBox(width: 10),
-                            Text('${weatherInfo.split('\n')[5]}'),
-                          ],
-                        ),
-                      ],
+                // Condition Card
+                Container(
+                  height: 250, // Increased height
+                  child: Card(
+                    elevation: 5,
+                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Icon(Icons.sunny, size: 40, color: Colors.blue),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '${weatherInfo.split('\n')[1]}',
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ],
-              if (forecastCards.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                const Text(
-                  '5-Day Forecast:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+
+                // Temperature Card with a fixed height
+                Container(
+                  height: 400, // Adjusted height
+                  child: Card(
+                    elevation: 5,
+                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Icon(Icons.thermostat, size: 40, color: Colors.blue),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Temperature: ${weatherInfo.split('\n')[0].split(':')[1]}',
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 10),
-                Column(
-                  children: forecastCards.map((card) {
-                    return Container(
-                      width: double.infinity,  // Make the card take up 100% width
-                      child: card,
-                    );
-                  }).toList(),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: MediaQuery.of(context).size.width / 2 - 20,
+                      child: Card(
+                        elevation: 5,
+                        margin: const EdgeInsets.symmetric(vertical: 10),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
+                              const Icon(
+                                Icons.water_drop,
+                                size: 40,
+                                color: Colors.blue,
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Humidity',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                '${weatherInfo.split('\n')[2].split(':')[1].trim()}%',
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: MediaQuery.of(context).size.width / 2 - 20,
+                      child: Card(
+                        elevation: 5,
+                        margin: const EdgeInsets.symmetric(vertical: 10),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
+                              const Icon(
+                                Icons.wind_power,
+                                size: 40,
+                                color: Colors.blue,
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Wind Speed',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                '${weatherInfo.split('\n')[3].split(':')[1].trim()}',
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
+
+              // Forecast cards
+              ...forecastCards,
             ],
           ),
         ),
