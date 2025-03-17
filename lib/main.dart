@@ -94,7 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
     await _fetchForecastByCity(cityName);
 
     setState(() {
-      isLoading = false; // Stop loading spinner after data is fetched
+      isLoading = false;
     });
   }
 
@@ -114,10 +114,12 @@ class _MyHomePageState extends State<MyHomePage> {
             weatherInfo = '';
           });
         } else {
+          String iconCode = data['weather'][0]['icon'];
           setState(() {
             weatherInfo =
-                'Current Temp: ${data['main']['temp']}°C\n'
+            'Current Temp: ${data['main']['temp']}°C\n'
                 'Condition: ${capitalizeCondition(data['weather'][0]['description'])}\n'
+                'Icon: $iconCode\n'
                 'Humidity: ${data['main']['humidity']}%\n'
                 'Wind Speed: ${data['wind']['speed']} m/s\n';
           });
@@ -166,20 +168,17 @@ class _MyHomePageState extends State<MyHomePage> {
             groupedForecast.forEach((date, items) {
               forecastCards.add(
                 Container(
-                  // Wrapper for forecast cards
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   child: Card(
                     elevation: 5,
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.center, // Centered content
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            DateFormat(
-                              'MMMM d, yyyy',
-                            ).format(DateFormat('yyyy-MM-dd').parse(date)),
+                            DateFormat('MMMM d, yyyy')
+                                .format(DateFormat('yyyy-MM-dd').parse(date)),
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -188,35 +187,19 @@ class _MyHomePageState extends State<MyHomePage> {
                           const SizedBox(height: 8),
                           Wrap(
                             spacing: 10,
-                            runSpacing: 10,
-                            children:
-                                items.map((item) {
-                                  String description = capitalizeCondition(
-                                    item['weather'][0]['description'],
-                                  );
-                                  String temp = item['main']['temp'].toString();
-                                  String time = item['dt_txt'].split(' ')[1];
-
-                                  return Container(
-                                    width: double.infinity, // 100% width
-                                    child: Column(
-                                      children: [
-                                        Text(
-                                          time,
-                                          style: const TextStyle(fontSize: 12),
-                                        ),
-                                        Text(
-                                          '$temp°C',
-                                          style: const TextStyle(fontSize: 14),
-                                        ),
-                                        Text(
-                                          description,
-                                          style: const TextStyle(fontSize: 12),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
+                            children: items.map((item) {
+                              String description = capitalizeCondition(
+                                  item['weather'][0]['description']);
+                              String temp = item['main']['temp'].toString();
+                              String time = item['dt_txt'].split(' ')[1];
+                              return Column(
+                                children: [
+                                  Text(time, style: const TextStyle(fontSize: 12)),
+                                  Text('$temp°C', style: const TextStyle(fontSize: 14)),
+                                  Text(description, style: const TextStyle(fontSize: 12)),
+                                ],
+                              );
+                            }).toList(),
                           ),
                         ],
                       ),
@@ -241,13 +224,10 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  // Capitalize the first letter of each word in the weather condition
   String capitalizeCondition(String condition) {
     return condition
         .split(' ')
-        .map((word) {
-          return word[0].toUpperCase() + word.substring(1);
-        })
+        .map((word) => word[0].toUpperCase() + word.substring(1))
         .join(' ');
   }
 
@@ -256,171 +236,54 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Search for a city
-              TextField(
-                controller: cityController,
-                decoration: const InputDecoration(
-                  labelText: 'Enter city name',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.location_city),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    cityName = value;
-                  });
-                },
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: cityController,
+              decoration: const InputDecoration(
+                labelText: 'Enter city name',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.location_city),
               ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
+              onChanged: (value) => cityName = value,
+            ),
+            const SizedBox(height: 20),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: ElevatedButton.icon(
                 onPressed: getWeatherData,
-                icon:
-                    isLoading
-                        ? const CircularProgressIndicator()
-                        : const Icon(Icons.search),
-                label: const Text('Get Weather'),
+                icon:  isLoading
+                    ? const CircularProgressIndicator()
+                    : const Icon(Icons.search),
+                label: Text('Get Weather'),
               ),
-              const SizedBox(height: 20),
-              if (errorMessage.isNotEmpty) ...[
-                // Error message
-                Text(
-                  errorMessage,
-                  style: const TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-              if (weatherInfo.isNotEmpty) ...[
-                // Condition Card
-                Container(
-                  height: 250, // Increased height
-                  child: Card(
-                    elevation: 5,
-                    margin: const EdgeInsets.symmetric(vertical: 10),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          Icon(Icons.sunny, size: 40, color: Colors.blue),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                '${weatherInfo.split('\n')[1]}',
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Temperature Card with a fixed height
-                Container(
-                  height: 400, // Adjusted height
-                  child: Card(
-                    elevation: 5,
-                    margin: const EdgeInsets.symmetric(vertical: 10),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          Icon(Icons.thermostat, size: 40, color: Colors.blue),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Temperature: ${weatherInfo.split('\n')[0].split(':')[1]}',
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      width: MediaQuery.of(context).size.width / 2 - 20,
-                      child: Card(
-                        elevation: 5,
-                        margin: const EdgeInsets.symmetric(vertical: 10),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              const Icon(
-                                Icons.water_drop,
-                                size: 40,
-                                color: Colors.blue,
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                'Humidity',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                '${weatherInfo.split('\n')[2].split(':')[1].trim()}%',
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                            ],
-                          ),
+            ),
+            if (errorMessage.isNotEmpty)
+              Text(errorMessage, style: TextStyle(color: Colors.red)),
+            if (weatherInfo.isNotEmpty) ...[
+              Container(
+                height: 250,
+                child: Card(
+                  elevation: 5,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        Image.network(
+                          'https://openweathermap.org/img/wn/${weatherInfo.split('\n')[2].split(':')[1].trim()}@2x.png',
+                          width: 100,
+                          height: 100,
                         ),
-                      ),
+                        Text(weatherInfo.split('\n')[1], style: const TextStyle(fontSize: 18)),
+                      ],
                     ),
-                    Container(
-                      width: MediaQuery.of(context).size.width / 2 - 20,
-                      child: Card(
-                        elevation: 5,
-                        margin: const EdgeInsets.symmetric(vertical: 10),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              const Icon(
-                                Icons.wind_power,
-                                size: 40,
-                                color: Colors.blue,
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                'Wind Speed',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                '${weatherInfo.split('\n')[3].split(':')[1].trim()}',
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ],
-
-              // Forecast cards
+              ),
               ...forecastCards,
             ],
-          ),
+          ],
         ),
       ),
     );
