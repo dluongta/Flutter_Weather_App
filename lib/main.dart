@@ -356,7 +356,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               ),
                             ),
                             Text(
-                              '${weatherInfo.split('\n')[2].split(':')[1].trim()}%',
+                              '${weatherInfo.split('\n')[3].split(':')[1].trim()}',
                               style: const TextStyle(fontSize: 18),
                             ),
                           ],
@@ -387,7 +387,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               ),
                             ),
                             Text(
-                              '${weatherInfo.split('\n')[3].split(':')[1].trim()}',
+                              '${weatherInfo.split('\n')[4].split(':')[1].trim()}',
                               style: const TextStyle(fontSize: 18),
                             ),
                           ],
