@@ -171,7 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   child: Card(
                     elevation: 5,
-                    color: Colors.blue[50], // Set background color to light blue
+                    color: Colors.purple[100],
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -281,7 +281,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 height: 250, // Increased height
                 child: Card(
                   elevation: 5,
-                  color: Colors.blue[50], // Set background color to light blue
+                  color: Colors.purple[100],
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -314,7 +314,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 height: 400, // Adjusted height
                 child: Card(
                   elevation: 5,
-                  color: Colors.blue[50], // Set background color to light blue
+                  color: Colors.purple[100],
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -346,7 +346,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: MediaQuery.of(context).size.width / 2 - 20,
                     child: Card(
                       elevation: 5,
-                      color: Colors.blue[50], // Set background color to light blue
+                      color: Colors.purple[100],
                       margin: const EdgeInsets.symmetric(vertical: 10),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -378,7 +378,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: MediaQuery.of(context).size.width / 2 - 20,
                     child: Card(
                       elevation: 5,
-                      color: Colors.blue[50], // Set background color to light blue
+                      color: Colors.purple[100],
                       margin: const EdgeInsets.symmetric(vertical: 10),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
