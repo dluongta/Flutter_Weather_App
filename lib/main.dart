@@ -117,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
           String iconCode = data['weather'][0]['icon'];
           setState(() {
             weatherInfo =
-                'Current Temp: ${data['main']['temp']}°C\n'
+            'Current Temp: ${data['main']['temp']}°C\n'
                 'Condition: ${capitalizeCondition(data['weather'][0]['description'])}\n'
                 'Icon: $iconCode\n'
                 'Humidity: ${data['main']['humidity']}%\n'
@@ -171,6 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   child: Card(
                     elevation: 5,
+                    color: Colors.blue[50], // Set background color to light blue
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -189,29 +190,29 @@ class _MyHomePageState extends State<MyHomePage> {
                           Wrap(
                             spacing: 10,
                             children:
-                                items.map((item) {
-                                  String description = capitalizeCondition(
-                                    item['weather'][0]['description'],
-                                  );
-                                  String temp = item['main']['temp'].toString();
-                                  String time = item['dt_txt'].split(' ')[1];
-                                  return Column(
-                                    children: [
-                                      Text(
-                                        time,
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                      Text(
-                                        '$temp°C',
-                                        style: const TextStyle(fontSize: 14),
-                                      ),
-                                      Text(
-                                        description,
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                    ],
-                                  );
-                                }).toList(),
+                            items.map((item) {
+                              String description = capitalizeCondition(
+                                item['weather'][0]['description'],
+                              );
+                              String temp = item['main']['temp'].toString();
+                              String time = item['dt_txt'].split(' ')[1];
+                              return Column(
+                                children: [
+                                  Text(
+                                    time,
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  Text(
+                                    '$temp°C',
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  Text(
+                                    description,
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                ],
+                              );
+                            }).toList(),
                           ),
                         ],
                       ),
@@ -266,9 +267,9 @@ class _MyHomePageState extends State<MyHomePage> {
               child: ElevatedButton.icon(
                 onPressed: getWeatherData,
                 icon:
-                    isLoading
-                        ? const CircularProgressIndicator()
-                        : const Icon(Icons.search),
+                isLoading
+                    ? const CircularProgressIndicator()
+                    : const Icon(Icons.search),
                 label: Text('Get Weather'),
               ),
             ),
@@ -280,6 +281,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 height: 250, // Increased height
                 child: Card(
                   elevation: 5,
+                  color: Colors.blue[50], // Set background color to light blue
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -295,7 +297,10 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                           Text(
                             weatherInfo.split('\n')[1],
-                            style: const TextStyle(fontSize: 18),
+                            style: const TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
@@ -309,6 +314,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 height: 400, // Adjusted height
                 child: Card(
                   elevation: 5,
+                  color: Colors.blue[50], // Set background color to light blue
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -320,7 +326,10 @@ class _MyHomePageState extends State<MyHomePage> {
                           children: [
                             Text(
                               'Temperature: ${weatherInfo.split('\n')[0].split(':')[1]}',
-                              style: const TextStyle(fontSize: 18),
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -337,6 +346,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: MediaQuery.of(context).size.width / 2 - 20,
                     child: Card(
                       elevation: 5,
+                      color: Colors.blue[50], // Set background color to light blue
                       margin: const EdgeInsets.symmetric(vertical: 10),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -368,6 +378,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: MediaQuery.of(context).size.width / 2 - 20,
                     child: Card(
                       elevation: 5,
+                      color: Colors.blue[50], // Set background color to light blue
                       margin: const EdgeInsets.symmetric(vertical: 10),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
